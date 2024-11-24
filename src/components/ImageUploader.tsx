@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { useDropzone } from "react-dropzone";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface ImageUploaderProps {
   galleryId: string;
@@ -12,6 +13,7 @@ interface ImageUploaderProps {
 export function ImageUploader({ galleryId, onUploadComplete }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [watermark, setWatermark] = useState(true);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
@@ -23,6 +25,7 @@ export function ImageUploader({ galleryId, onUploadComplete }: ImageUploaderProp
 
       const formData = new FormData();
       formData.append('galleryId', galleryId);
+      formData.append('watermark', watermark.toString());
       
       acceptedFiles.forEach(file => {
         formData.append('images', file);
@@ -51,6 +54,20 @@ export function ImageUploader({ galleryId, onUploadComplete }: ImageUploaderProp
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center space-x-2 mb-4">
+        <Checkbox
+          id="watermark"
+          checked={watermark}
+          onCheckedChange={(checked) => setWatermark(checked as boolean)}
+        />
+        <label
+          htmlFor="watermark"
+          className="text-sm font-medium leading-none"
+        >
+          Apply watermark to uploaded images
+        </label>
+      </div>
+
       <div
         {...getRootProps()}
         className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer

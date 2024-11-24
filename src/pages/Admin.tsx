@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,40 +6,36 @@ import { AdminGalleryList } from "@/components/AdminGalleryList";
 import { CreateGalleryDialog } from "@/components/CreateGalleryDialog";
 import { toast } from "sonner";
 
-const ADMIN_PASSWORD = "admin123"; // In a real app, this should be stored securely
-
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-      toast.success("Successfully logged in");
-    } else {
-      toast.error("Invalid password");
-    }
-  };
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/check');
+        if (!response.ok) {
+          navigate('/login');
+        } else {
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        navigate('/login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   if (!isAuthenticated) {
-    return (
-      <div className="container mx-auto max-w-md py-12">
-        <h1 className="text-2xl font-bold mb-6">Admin Login</h1>
-        <form onSubmit={handleLogin} className="space-y-4">
-          <Input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter admin password"
-          />
-          <Button type="submit" className="w-full">
-            Login
-          </Button>
-        </form>
-      </div>
-    );
+    return null;
   }
 
   return (
