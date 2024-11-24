@@ -10,8 +10,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { dbUtils } from "@/lib/dbUtils";
 
 export function CreateGalleryDialog() {
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -19,13 +22,20 @@ export function CreateGalleryDialog() {
     price: "",
   });
 
+  const createMutation = useMutation({
+    mutationFn: (data: { name: string; password: string; price: string }) => 
+      dbUtils.createGallery(data.name, data.password, parseFloat(data.price)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['galleries'] });
+      setOpen(false);
+      setForm({ name: "", password: "", price: "" });
+      toast.success("Gallery created successfully");
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically save to a backend
-    console.log("Creating gallery:", form);
-    setOpen(false);
-    setForm({ name: "", password: "", price: "" });
-    toast.success("Gallery created successfully");
+    createMutation.mutate(form);
   };
 
   return (

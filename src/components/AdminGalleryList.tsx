@@ -10,21 +10,38 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-
-interface Gallery {
-  id: string;
-  name: string;
-  password: string;
-  price: number;
-}
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { dbUtils, type Gallery } from "@/lib/dbUtils";
 
 export function AdminGalleryList() {
-  const [galleries, setGalleries] = useState<Gallery[]>([]);
+  const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
     name: "",
     password: "",
     price: 0,
+  });
+
+  const { data: galleries = [], isLoading } = useQuery({
+    queryKey: ['galleries'],
+    queryFn: dbUtils.getAllGalleries,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: dbUtils.updateGallery,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['galleries'] });
+      toast.success("Gallery updated successfully");
+      setEditingId(null);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: dbUtils.deleteGallery,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['galleries'] });
+      toast.success("Gallery deleted successfully");
+    },
   });
 
   const handleEdit = (gallery: Gallery) => {
@@ -36,22 +53,20 @@ export function AdminGalleryList() {
     });
   };
 
-  const handleSave = (id: string) => {
-    setGalleries((prev) =>
-      prev.map((gallery) =>
-        gallery.id === id
-          ? { ...gallery, ...editForm }
-          : gallery
-      )
-    );
-    setEditingId(null);
-    toast.success("Gallery updated successfully");
+  const handleSave = async (id: string) => {
+    await updateMutation.mutateAsync({
+      id,
+      ...editForm,
+    });
   };
 
-  const handleDelete = (id: string) => {
-    setGalleries((prev) => prev.filter((gallery) => gallery.id !== id));
-    toast.success("Gallery deleted successfully");
+  const handleDelete = async (id: string) => {
+    await deleteMutation.mutateAsync(id);
   };
+
+  if (isLoading) {
+    return <div>Loading galleries...</div>;
+  }
 
   return (
     <div className="rounded-md border">
@@ -65,7 +80,7 @@ export function AdminGalleryList() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {galleries.map((gallery) => (
+          {galleries.map((gallery: Gallery) => (
             <TableRow key={gallery.id}>
               <TableCell>
                 {editingId === gallery.id ? (
