@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { dbUtils, type Gallery } from "@/lib/dbUtils";
+import { apiService } from "@/lib/apiService";
+import type { Gallery } from "@/lib/dbUtils";
 
 export function AdminGalleryList() {
   const queryClient = useQueryClient();
@@ -24,11 +25,11 @@ export function AdminGalleryList() {
 
   const { data: galleries = [], isLoading } = useQuery({
     queryKey: ['galleries'],
-    queryFn: dbUtils.getAllGalleries,
+    queryFn: apiService.getAllGalleries,
   });
 
   const updateMutation = useMutation({
-    mutationFn: dbUtils.updateGallery,
+    mutationFn: apiService.updateGallery,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['galleries'] });
       toast.success("Gallery updated successfully");
@@ -37,7 +38,7 @@ export function AdminGalleryList() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: dbUtils.deleteGallery,
+    mutationFn: apiService.deleteGallery,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['galleries'] });
       toast.success("Gallery deleted successfully");

@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { dbUtils } from "@/lib/dbUtils";
+import { apiService } from "@/lib/apiService";
 
 export function CreateGalleryDialog() {
   const queryClient = useQueryClient();
@@ -24,7 +24,7 @@ export function CreateGalleryDialog() {
 
   const createMutation = useMutation({
     mutationFn: (data: { name: string; password: string; price: string }) => 
-      dbUtils.createGallery(data.name, data.password, parseFloat(data.price)),
+      apiService.createGallery(data.name, data.password, parseFloat(data.price)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['galleries'] });
       setOpen(false);
